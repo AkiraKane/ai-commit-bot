@@ -1,0 +1,22 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  commit-bot:
+    build: .
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    entrypoint: ["python", "src/main.py", "--unstaged"]
+
+volumes:
+  ollama_data:

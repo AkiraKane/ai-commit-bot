@@ -1,0 +1,27 @@
+name: 'AI Commit Message Bot'
+description: 'Generate meaningful commit messages from git diffs using AI'
+
+inputs:
+  model:
+    description: 'Ollama model to use'
+    required: false
+    default: 'llama3.2'
+  comment_on_pr:
+    description: 'Post suggested message as PR comment'
+    required: false
+    default: 'false'
+  ollama_url:
+    description: 'Ollama API URL'
+    required: false
+    default: 'http://localhost:11434'
+
+outputs:
+  message:
+    description: 'The generated commit message'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - --model=${{ inputs.model }}
+    - --ollama-url=${{ inputs.ollama_url }}

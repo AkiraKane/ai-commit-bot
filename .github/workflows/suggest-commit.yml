@@ -1,0 +1,40 @@
+name: AI Commit Suggestion
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  suggest:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Get PR diff
+        run: gh pr diff ${{ github.event.pull_request.number }} > pr.diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Generate commit message
+        id: generate
+        run: |
+          MESSAGE=$(python src/main.py --file pr.diff --output message 2>/dev/null || echo "")
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: steps.generate.outputs.message != ''
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "**AI Suggested Commit Message:**
+          \`\`\`
+          ${{ steps.generate.outputs.message }}
+          \`\`\`"
+        env:
+          GH_TOKEN: ${{ github.token }}
